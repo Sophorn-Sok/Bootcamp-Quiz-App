@@ -48,39 +48,22 @@ export default function Navbar() {
         <div className="flex justify-between h-16 sm:h-20">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
-              <div className="relative w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center floating-element overflow-hidden">
-                {/* Graduation Cap - Exact Design */}
-                <div className="relative w-8 h-8 sm:w-10 sm:h-10">
-                  {/* Main cap body - darker purple gradient */}
-                  <div className="absolute top-0 left-0 w-full h-4 bg-gradient-to-b from-purple-700 via-purple-600 to-purple-500 rounded-t-lg"></div>
-                  
-                  {/* Cap brim */}
-                  <div className="absolute top-4 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-purple-500"></div>
-                  
-                  {/* Tassel hanging from right */}
-                  <div className="absolute top-1 right-0 w-1.5 h-5 bg-gradient-to-b from-purple-500 to-purple-400 rounded-full"></div>
-                  
-                  {/* Book/tablet area below cap */}
-                  <div className="absolute top-5 left-1 w-10 h-4 bg-gradient-to-r from-purple-400 to-purple-300 rounded-sm"></div>
-                  
-                  {/* Large white question mark */}
-                  <div className="absolute top-5.5 left-2 w-8 h-3 flex items-center justify-center">
-                    <span className="text-white text-lg font-bold">?</span>
-                  </div>
-                  
-                  {/* Two white lines below question mark */}
-                  <div className="absolute top-8.5 left-2.5 w-5 h-0.5 bg-white rounded-full"></div>
-                  <div className="absolute top-9 left-2.5 w-4 h-0.5 bg-white rounded-full"></div>
-                </div>
+            <Link href="/" className="flex items-center space-x-3 sm:space-x-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center floating-element rounded-2xl overflow-hidden">
+                {/* Logo Image */}
+                <img 
+                  src="https://files.oaiusercontent.com/file-9hDvozFB6KguKXB38bk5Cc?se=2025-08-07T07%3A16%3A50Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3D70e4d29a-e152-4532-ad90-10a99637b135.png&sig=n0I3gn2Tg7MaB9Fwg86rECRJqSCCQjhYkS/NKONCJh8%3D"
+                  alt="HAT REAN QUIZAPP Logo"
+                  className="w-full h-full object-contain"
+                />
               </div>
               
-              {/* Text - Exact styling */}
-              <div className="flex flex-col">
-                <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent leading-tight tracking-wider">
+              {/* Text - Aligned to match reference */}
+              <div className="flex flex-col justify-center">
+                <span className="text-2xl sm:text-3xl font-black text-purple-600 leading-none tracking-wide">
                   HAT REAN
                 </span>
-                <span className="text-base sm:text-lg font-medium bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent leading-tight tracking-wider">
+                <span className="text-base sm:text-lg font-bold text-purple-500 leading-none tracking-wide mt-0.5">
                   QUIZAPP
                 </span>
               </div>
