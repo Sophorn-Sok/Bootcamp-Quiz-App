@@ -52,7 +52,7 @@ export default function Navbar() {
               <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center floating-element rounded-2xl overflow-hidden">
                 {/* Logo Image */}
                 <img 
-                  src="https://files.oaiusercontent.com/file-9hDvozFB6KguKXB38bk5Cc?se=2025-08-07T07%3A16%3A50Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3D70e4d29a-e152-4532-ad90-10a99637b135.png&sig=n0I3gn2Tg7MaB9Fwg86rECRJqSCCQjhYkS/NKONCJh8%3D"
+                  src="/logo.png"
                   alt="HAT REAN QUIZAPP Logo"
                   className="w-full h-full object-contain"
                 />
