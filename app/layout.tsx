@@ -12,9 +12,15 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+<<<<<<< HEAD
   title: "QuizMaster - Test Your Knowledge",
   description: "A comprehensive quiz application with multiple categories, leaderboards, and admin features",
     generator: 'v0.dev'
+=======
+  title: "Hat rean - Test Your Knowledge",
+  description: "A comprehensive quiz application with multiple categories, leaderboards, and admin features",
+  generator: "v0.dev",
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
 }
 
 export default function RootLayout({

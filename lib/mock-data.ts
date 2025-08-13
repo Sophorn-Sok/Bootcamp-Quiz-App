@@ -270,7 +270,11 @@ export const mockQuizAttempts: QuizAttempt[] = [
     totalQuestions: 10,
     timeTaken: 150,
     completedAt: "2024-01-15T16:45:00Z",
+<<<<<<< HEAD
     username: "Sok Sophorn",
+=======
+    username: "jane_smith",
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
     categoryName: "General Knowledge",
   },
 ]

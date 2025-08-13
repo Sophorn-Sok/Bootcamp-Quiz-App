@@ -1,6 +1,10 @@
 "use client"
 
 import type React from "react"
+<<<<<<< HEAD
+=======
+
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -50,6 +54,7 @@ export default function SignupPage() {
   }
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 px-4">
       <Card className="w-full max-w-md shadow-2xl border-0 rounded-3xl">
         <CardHeader className="flex flex-col items-center">
@@ -71,30 +76,56 @@ export default function SignupPage() {
           <form onSubmit={handleSignup} className="space-y-5">
             <div>
               <Label htmlFor="fullName" className="text-sm font-semibold text-purple-700">Full Name</Label>
+=======
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Sign Up</CardTitle>
+          <CardDescription>Create your account to start taking quizzes</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSignup} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
               <Input
                 id="fullName"
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
+<<<<<<< HEAD
                 className="mt-2 bg-white/80 border border-purple-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-100 rounded-xl"
                 placeholder="Enter your full name"
               />
             </div>
             <div>
               <Label htmlFor="username" className="text-sm font-semibold text-purple-700">Username</Label>
+=======
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
               <Input
                 id="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+<<<<<<< HEAD
                 className="mt-2 bg-white/80 border border-purple-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-100 rounded-xl"
                 placeholder="Choose a username"
               />
             </div>
             <div>
               <Label htmlFor="password" className="text-sm font-semibold text-purple-700">Password</Label>
+=======
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
               <Input
                 id="password"
                 type="password"
@@ -102,6 +133,7 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+<<<<<<< HEAD
                 className="mt-2 bg-white/80 border border-purple-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-100 rounded-xl"
                 placeholder="Create a password"
               />
@@ -118,6 +150,18 @@ export default function SignupPage() {
             <p className="text-sm text-gray-600">
               Already have an account?{" "}
               <Link href="/auth/login" className="text-pink-600 font-semibold hover:underline">
+=======
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Creating account..." : "Sign Up"}
+            </Button>
+          </form>
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-600">
+              Already have an account?{" "}
+              <Link href="/auth/login" className="text-blue-600 hover:underline">
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
                 Login
               </Link>
             </p>
@@ -126,4 +170,8 @@ export default function SignupPage() {
       </Card>
     </div>
   )
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb

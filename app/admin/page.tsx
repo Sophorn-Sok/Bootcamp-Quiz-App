@@ -1,6 +1,10 @@
 "use client"
 
 import type React from "react"
+<<<<<<< HEAD
+=======
+
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -9,14 +13,22 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+<<<<<<< HEAD
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/lib/auth-context"
 import { mockCategories, mockQuestions, type Question } from "@/lib/mock-data"
 import { Plus, Search, Eye, Edit, Trash2, Calendar, MessageSquare, Settings, BookOpen, Users, ArrowLeft } from "lucide-react"
+=======
+import { useAuth } from "@/lib/auth-context"
+import { mockCategories, mockQuestions, type Question } from "@/lib/mock-data"
+import { Plus, BookOpen, Users } from "lucide-react"
+import { toast } from "@/hooks/use-toast"
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
 
 export default function AdminPage() {
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
+<<<<<<< HEAD
   const [showQuestionManagement, setShowQuestionManagement] = useState(false)
   const [questions, setQuestions] = useState<Question[]>([])
   const [filteredQuestions, setFilteredQuestions] = useState<Question[]>([])
@@ -26,6 +38,8 @@ export default function AdminPage() {
   const [selectedDifficulty, setSelectedDifficulty] = useState("all")
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
+=======
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
 
   // Form states
   const [question, setQuestion] = useState("")
@@ -34,7 +48,11 @@ export default function AdminPage() {
   const [optionC, setOptionC] = useState("")
   const [optionD, setOptionD] = useState("")
   const [correctAnswer, setCorrectAnswer] = useState("")
+<<<<<<< HEAD
   const [categoryId, setCategoryId] = useState("")
+=======
+  const [selectedCategory, setSelectedCategory] = useState("")
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
   const [difficulty, setDifficulty] = useState("medium")
   const [submitting, setSubmitting] = useState(false)
 
@@ -51,6 +69,7 @@ export default function AdminPage() {
       return
     }
 
+<<<<<<< HEAD
     setQuestions(mockQuestions)
     setFilteredQuestions(mockQuestions)
     setLoading(false)
@@ -103,11 +122,17 @@ export default function AdminPage() {
     }
   }
 
+=======
+    setLoading(false)
+  }, [user, router])
+
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
   const handleSubmitQuestion = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
 
     try {
+<<<<<<< HEAD
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
       if (editingQuestion) {
@@ -160,11 +185,51 @@ export default function AdminPage() {
       resetForm()
     } catch (error) {
       alert("An unexpected error occurred")
+=======
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      const newQuestion: Question = {
+        id: Date.now().toString(),
+        categoryId: selectedCategory,
+        question,
+        optionA,
+        optionB,
+        optionC,
+        optionD,
+        correctAnswer: correctAnswer as "A" | "B" | "C" | "D",
+        difficulty: difficulty as "easy" | "medium" | "hard",
+      }
+
+      mockQuestions.push(newQuestion)
+
+      toast({
+        title: "Success! 🎉",
+        description: `Question added to ${mockCategories.find((c) => c.id === selectedCategory)?.name}. Total questions: ${mockQuestions.length}`,
+      })
+
+      // Reset form
+      setQuestion("")
+      setOptionA("")
+      setOptionB("")
+      setOptionC("")
+      setOptionD("")
+      setCorrectAnswer("")
+      setSelectedCategory("")
+      setDifficulty("medium")
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      })
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
     } finally {
       setSubmitting(false)
     }
   }
 
+<<<<<<< HEAD
   const resetForm = () => {
     setQuestion("")
     setOptionA("")
@@ -208,6 +273,12 @@ export default function AdminPage() {
           </div>
           <p className="text-lg font-bold text-gray-600">Loading admin dashboard... ✨</p>
         </div>
+=======
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">Loading...</div>
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
       </div>
     )
   }
@@ -216,6 +287,7 @@ export default function AdminPage() {
     return null
   }
 
+<<<<<<< HEAD
   // Show Question Management Interface
   if (showQuestionManagement) {
     return (
@@ -555,12 +627,15 @@ export default function AdminPage() {
   }
 
   // Show Main Admin Dashboard
+=======
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
           <p className="text-gray-600">Manage quiz questions and categories</p>
+<<<<<<< HEAD
         </div>
 
         <div className="text-center mb-8">
@@ -570,6 +645,16 @@ export default function AdminPage() {
           >
             Manage Questions
           </Button>
+=======
+          <div className="mt-4">
+            <Button 
+              onClick={() => router.push("/admin/questions")}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              Manage Questions
+            </Button>
+          </div>
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -595,7 +680,10 @@ export default function AdminPage() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-green-600">{mockCategories.length}</p>
+<<<<<<< HEAD
               <p className="text-xs text-gray-500 mt-1">Across all categories</p>
+=======
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
             </CardContent>
           </Card>
 
@@ -603,7 +691,11 @@ export default function AdminPage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Plus className="w-5 h-5 mr-2" />
+<<<<<<< HEAD
                 Add Contents
+=======
+                Add Content
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -633,7 +725,11 @@ export default function AdminPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
+<<<<<<< HEAD
                   <Select value={categoryId} onValueChange={setCategoryId} required>
+=======
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory} required>
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -711,7 +807,11 @@ export default function AdminPage() {
               </div>
 
               <Button type="submit" disabled={submitting} className="w-full">
+<<<<<<< HEAD
                 {submitting ? "Adding Question..." : "Post Questions"}
+=======
+                {submitting ? "Adding Question..." : "Add Question"}
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
               </Button>
             </form>
           </CardContent>
