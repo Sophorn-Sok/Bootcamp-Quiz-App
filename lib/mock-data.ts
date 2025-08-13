@@ -270,7 +270,7 @@ export const mockQuizAttempts: QuizAttempt[] = [
     totalQuestions: 10,
     timeTaken: 150,
     completedAt: "2024-01-15T16:45:00Z",
-    username: "jane_smith",
+    username: "Sok Sophorn",
     categoryName: "General Knowledge",
   },
 ]

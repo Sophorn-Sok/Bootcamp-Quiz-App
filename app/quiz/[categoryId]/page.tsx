@@ -16,7 +16,7 @@ const questionIcons = {
   "5": "💻", // Technology
 }
 
-const answerEmojis = ["🅰️", "🅱️", "🅲️", "🅳️"]
+const answerEmojis = ["A", "B", "C", "D"]
 
 export default function QuizPage() {
   const { user } = useAuth()
@@ -68,11 +68,13 @@ export default function QuizPage() {
     setIsCorrect(correct)
     setShowFeedback(true)
 
-    if (correct) {
-      setScore(score + 1)
-    }
-
     setTimeout(() => {
+      let newScore = score
+      if (correct) {
+        newScore = score + 1
+        setScore(newScore)
+      }
+
       if (currentQuestionIndex + 1 < questions.length) {
         setCurrentQuestionIndex(currentQuestionIndex + 1)
         setSelectedAnswer("")
@@ -80,17 +82,16 @@ export default function QuizPage() {
         setShowFeedback(false)
       } else {
         setQuizCompleted(true)
-        saveQuizResult()
+        saveQuizResult(newScore)
       }
     }, 2000)
   }
 
-  const saveQuizResult = async () => {
+  const saveQuizResult = async (finalScore: number) => {
     if (!user) return
 
     const endTime = new Date()
     const timeTaken = Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
-    const finalScore = selectedAnswer === questions[currentQuestionIndex]?.correctAnswer ? score + 1 : score
 
     const newAttempt = {
       id: Date.now().toString(),
@@ -136,8 +137,7 @@ export default function QuizPage() {
   }
 
   if (quizCompleted) {
-    const finalScore = selectedAnswer === questions[currentQuestionIndex]?.correctAnswer ? score + 1 : score
-    const percentage = Math.round((finalScore / questions.length) * 100)
+    const percentage = Math.round((score / questions.length) * 100)
 
     let emoji = "🎉"
     let message = "Amazing work!"
@@ -172,7 +172,7 @@ export default function QuizPage() {
           <CardContent className="p-8 text-center space-y-6">
             <div className="space-y-4">
               <div className="text-6xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                {finalScore}/{questions.length}
+                {score}/{questions.length}
               </div>
               <div className="text-2xl font-semibold text-gray-700">{percentage}% Correct</div>
               <div className="flex justify-center space-x-6 text-sm text-gray-600">
