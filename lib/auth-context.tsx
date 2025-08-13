@@ -6,6 +6,12 @@ import { mockUsers, type User } from "./mock-data"
 
 interface AuthContextType {
   user: User | null
+<<<<<<< HEAD
+  profileImageUrl: string | null
+  setProfileImageUrl: (url: string | null) => void
+  updateProfile: (updates: Partial<User>) => void
+=======
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
   login: (username: string, password: string) => Promise<boolean>
   signup: (username: string, password: string, fullName: string) => Promise<boolean>
   logout: () => void
@@ -16,6 +22,43 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+<<<<<<< HEAD
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // Check for stored user and profile image on mount
+    const storedUser = localStorage.getItem("quiz-app-user")
+    const storedImageUrl = localStorage.getItem("quiz-app-profile-image")
+    
+    if (storedUser) {
+      setUser(JSON.parse(storedUser))
+    }
+    
+    if (storedImageUrl) {
+      setProfileImageUrl(storedImageUrl)
+    }
+    
+    setIsLoading(false)
+  }, [])
+
+  const updateProfileImage = (url: string | null) => {
+    setProfileImageUrl(url)
+    if (url) {
+      localStorage.setItem("quiz-app-profile-image", url)
+    } else {
+      localStorage.removeItem("quiz-app-profile-image")
+    }
+  }
+
+  const updateProfile = (updates: Partial<User>) => {
+    if (user) {
+      setUser({ ...user, ...updates })
+      localStorage.setItem("quiz-app-user", JSON.stringify({ ...user, ...updates }))
+    }
+  }
+
+=======
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -27,6 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false)
   }, [])
 
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
   const login = async (username: string, password: string): Promise<boolean> => {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -66,10 +110,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null)
+<<<<<<< HEAD
+    setProfileImageUrl(null)
+    localStorage.removeItem("quiz-app-user")
+    localStorage.removeItem("quiz-app-profile-image")
+  }
+
+  return (
+    <AuthContext.Provider value={{ 
+      user, 
+      profileImageUrl, 
+      setProfileImageUrl: updateProfileImage,
+      updateProfile,
+      login, 
+      signup, 
+      logout, 
+      isLoading 
+    }}>
+      {children}
+    </AuthContext.Provider>
+  )
+=======
     localStorage.removeItem("quiz-app-user")
   }
 
   return <AuthContext.Provider value={{ user, login, signup, logout, isLoading }}>{children}</AuthContext.Provider>
+>>>>>>> ab2bad00c0ba75be3e9f1cc1bdf49e751b7031bb
 }
 
 export function useAuth() {
