@@ -4,53 +4,48 @@ import { type NextRequest, NextResponse } from "next/server"
 export async function POST(request: NextRequest) {
   try {
     const supabase = createClient()
-    const { username, password } = await request.json()
+    const { email, password } = await request.json()
 
-    if (!username || !password) {
-      return NextResponse.json({ error: "Username and password are required" }, { status: 400 })
+    if (!email || !password) {
+      return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
     }
 
-    let emailToUse = username
-
-    if (!username.includes("@")) {
-      // Query the auth.users table to find user by username in raw_user_meta_data
-      const { data: userData, error: userError } = await supabase
-        .from("auth.users")
-        .select("email")
-        .eq("raw_user_meta_data->>username", username)
-        .single()
-
-      if (userError || !userData) {
-        // Try alternative approach - query profiles table if it exists
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("email")
-          .eq("username", username)
-          .single()
-
-        if (profileError || !profileData) {
-          return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
-        }
-
-        emailToUse = profileData.email
-      } else {
-        emailToUse = userData.email
-      }
-    }
-
-    const signInResult = await supabase.auth.signInWithPassword({
-      email: emailToUse,
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
       password,
     })
 
-    if (signInResult.error) {
+    if (error) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       message: "Login successful",
-      user: signInResult.data.user,
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        username: data.user.user_metadata?.username,
+        fullName: data.user.user_metadata?.full_name,
+      },
     })
+
+    if (data.session) {
+      response.cookies.set("sb-access-token", data.session.access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: data.session.expires_in,
+      })
+
+      response.cookies.set("sb-refresh-token", data.session.refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+      })
+    }
+
+    return response
   } catch (error) {
     console.error("Login error:", error)
     return NextResponse.json({ error: "An unexpected error occurred. Please try again." }, { status: 500 })

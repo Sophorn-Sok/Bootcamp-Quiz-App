@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "@/hooks/use-toast"
 
 export default function Login() {
-  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -28,7 +28,7 @@ export default function Login() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username,
+          email,
           password,
         }),
       })
@@ -40,11 +40,11 @@ export default function Login() {
           title: "Success",
           description: data.message || "Logged in successfully!",
         })
-        router.push("/")
+        router.push("/dashboard")
       } else {
         toast({
           title: "Error",
-          description: data.error || "Invalid username or password",
+          description: data.error || "Invalid email or password",
           variant: "destructive",
         })
       }
@@ -76,25 +76,25 @@ export default function Login() {
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-center">
           <p className="text-sm text-blue-800 font-medium">Demo Accounts:</p>
           <p className="text-xs text-blue-700">
-            Username: <b>admin</b>, Password: <b>password</b> (Admin)
+            Email: <b>admin@example.com</b>, Password: <b>password</b> (Admin)
           </p>
           <p className="text-xs text-blue-700">
-            Username: <b>john_doe</b>, Password: <b>password</b>
+            Email: <b>john@example.com</b>, Password: <b>password</b>
           </p>
         </div>
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <Label htmlFor="username" className="text-sm font-semibold text-purple-700">
-              Username
+            <Label htmlFor="email" className="text-sm font-semibold text-purple-700">
+              Email
             </Label>
             <Input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               className="mt-2 bg-white/80 border border-purple-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-100 rounded-xl"
-              placeholder="Enter your username"
+              placeholder="Enter your email"
             />
           </div>
           <div>

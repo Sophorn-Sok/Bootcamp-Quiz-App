@@ -25,7 +25,7 @@ const categoryColors = {
   "5": "from-purple-400 to-indigo-500",
 }
 
-export default function HomePage() {
+export default function DashboardPage() {
   const { user, isLoading } = useAuth()
   const [categories] = useState<Category[]>(mockCategories)
   const [selectedCategory, setSelectedCategory] = useState<string>("")
