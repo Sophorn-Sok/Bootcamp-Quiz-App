@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { mockQuizAttempts, type QuizAttempt } from "@/lib/mock-data"
-import { Trophy, Medal, Clock, Zap, Star, Crown } from "lucide-react"
+import { Trophy, Medal, Clock, Zap, Star, Crown, Brain } from "lucide-react"
 
-export default function LeaderboardPage() {
+export default function DashboardPage() {
   const [leaderboard] = useState<QuizAttempt[]>(
     [...mockQuizAttempts].sort((a, b) => {
       if (b.score !== a.score) {
@@ -15,6 +16,42 @@ export default function LeaderboardPage() {
       return a.timeTaken - b.timeTaken
     }),
   )
+  const [user, setUser] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    checkUserSession()
+  }, [])
+
+  const checkUserSession = async () => {
+    try {
+      const response = await fetch("/api/auth/session")
+      if (response.ok) {
+        const data = await response.json()
+        if (data.user) {
+          setUser(data.user)
+          // Redirect admins to admin dashboard
+          if (data.user.user_metadata?.role === "admin") {
+            router.push("/admin")
+            return
+          }
+        } else {
+          router.push("/auth/login")
+          return
+        }
+      } else {
+        router.push("/auth/login")
+        return
+      }
+    } catch (error) {
+      console.error("Session check failed:", error)
+      router.push("/auth/login")
+      return
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const getRankIcon = (index: number) => {
     switch (index) {
@@ -50,6 +87,23 @@ export default function LeaderboardPage() {
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-spin mx-auto mb-4 flex items-center justify-center">
+            <Brain className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-lg font-bold text-gray-600">Loading your quiz adventure... ✨</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null
   }
 
   return (
