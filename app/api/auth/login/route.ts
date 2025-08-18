@@ -3,6 +3,16 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.error("Auth check error: Your project's URL and Key are required to create a Supabase client!")
+      return NextResponse.json(
+        {
+          error: "Authentication service not configured. Please set up Supabase integration.",
+        },
+        { status: 500 },
+      )
+    }
+
     const supabase = createClient()
     const { email, password } = await request.json()
 
@@ -16,6 +26,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
+      console.error("Supabase auth error:", error)
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 

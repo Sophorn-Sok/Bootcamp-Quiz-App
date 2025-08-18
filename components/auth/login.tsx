@@ -40,7 +40,7 @@ export default function Login() {
           title: "Success",
           description: data.message || "Logged in successfully!",
         })
-        router.push("/dashboard")
+        router.push("/") // Default to category 1 (General Knowledge)
       } else {
         toast({
           title: "Error",
@@ -73,7 +73,6 @@ export default function Login() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-       
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <Label htmlFor="email" className="text-sm font-semibold text-purple-700">
