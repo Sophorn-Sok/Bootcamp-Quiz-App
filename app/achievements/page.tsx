@@ -49,7 +49,7 @@ export default function AchievementsPage() {
     },
     {
       id: '2',
-      title: 'Quiz Master',
+      title: 'Hat Rean',
       description: 'Complete 10 quizzes',
       icon: <Trophy className="w-6 h-6" />,
       category: 'quiz',
