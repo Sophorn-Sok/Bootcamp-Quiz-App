@@ -12,7 +12,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "QuizMaster - Test Your Knowledge",
+  title: "Hat Rean - Test Your Knowledge",
   description: "A comprehensive quiz application with multiple categories, leaderboards, and admin features",
     generator: 'v0.dev'
 }

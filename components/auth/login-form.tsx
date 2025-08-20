@@ -62,18 +62,14 @@ export default function LoginForm() {
             Welcome Back!
           </CardTitle>
           <CardDescription className="text-center text-gray-500">
-            Sign in to access <span className="font-semibold text-purple-600">Hat Rean QuizApp</span>
+            Login to access <span className="font-semibold text-purple-600">Hat Rean QuizApp</span>
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-center">
-            <p className="text-sm text-blue-800 font-medium">Demo Accounts:</p>
-            <p className="text-xs text-blue-700">Username: <b>admin</b>, Password: <b>password</b> (Admin)</p>
-            <p className="text-xs text-blue-700">Username: <b>john_doe</b>, Password: <b>password</b></p>
-          </div>
+          
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <Label htmlFor="username" className="text-sm font-semibold text-purple-700">Username</Label>
+              <Label htmlFor="email" className="text-sm font-semibold text-purple-700">Email</Label>
               <Input
                 id="username"
                 type="text"
@@ -81,7 +77,7 @@ export default function LoginForm() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 className="mt-2 bg-white/80 border border-purple-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-100 rounded-xl"
-                placeholder="Enter your username"
+                placeholder="Enter your email"
               />
             </div>
             <div>
