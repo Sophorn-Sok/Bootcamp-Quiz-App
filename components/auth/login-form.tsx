@@ -66,7 +66,11 @@ export default function LoginForm() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+<<<<<<< HEAD
           
+=======
+         
+>>>>>>> 91a9fdf7192b3e46988836ab6fb727c65c40d9ed
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
               <Label htmlFor="email" className="text-sm font-semibold text-purple-700">Email</Label>
