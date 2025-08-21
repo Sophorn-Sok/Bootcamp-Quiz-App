@@ -86,14 +86,7 @@ export default function Navbar() {
                     <span className="hidden sm:inline">Leaderboard</span>
                   </Button>
                 </Link>
-                {user.isAdmin && (
-                  <Link href="/admin">
-                    <Button variant="ghost" size="sm" className="rounded-xl hover:bg-purple-50 text-sm lg:text-base">
-                      <Settings className="w-4 h-4 mr-2" />
-                      <span className="hidden sm:inline">Admin</span>
-                    </Button>
-                  </Link>
-                )}
+                
                 
                 {/* Profile Dropdown */}
                 <div className="relative">
@@ -111,10 +104,10 @@ export default function Navbar() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="text-white font-bold text-xs lg:text-sm">{user.fullName.charAt(0).toUpperCase()}</span>
+                                                <span className="text-white font-bold text-xs lg:text-sm">{user.user_metadata.full_name.charAt(0).toUpperCase()}</span>
                       )}
                     </div>
-                    <span className="text-xs lg:text-sm font-medium text-gray-700 hidden lg:inline">Hi, {user.fullName}! 👋</span>
+                    <span className="text-xs lg:text-sm font-medium text-gray-700 hidden lg:inline">Hi, {user.user_metadata.full_name}! 👋</span>
                     <span className="text-xs font-medium text-gray-700 lg:hidden">Hi! 👋</span>
                   </Button>
 
@@ -133,7 +126,7 @@ export default function Navbar() {
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
-                                <span className="text-white font-bold text-2xl">{user.fullName.charAt(0).toUpperCase()}</span>
+                                <span className="text-white font-bold text-2xl">{user.user_metadata.full_name.charAt(0).toUpperCase()}</span>
                               )}
                             </div>
                             <div className="absolute -bottom-1 -right-1 flex space-x-1">
@@ -169,13 +162,9 @@ export default function Navbar() {
                               className="hidden"
                             />
                           </div>
-                          <h3 className="text-lg font-bold text-gray-800">{user.fullName}</h3>
-                          <p className="text-sm text-gray-600">@{user.username}</p>
-                          {user.isAdmin && (
-                            <span className="inline-block mt-2 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full">
-                              Admin
-                            </span>
-                          )}
+                          <h3 className="text-lg font-bold text-gray-800">{user.user_metadata.full_name}</h3>
+                          
+                          
                         </div>
 
                         {/* Profile Stats */}
@@ -287,14 +276,7 @@ export default function Navbar() {
                       Leaderboard
                     </Button>
                   </Link>
-                  {user.isAdmin && (
-                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start rounded-xl hover:bg-purple-50">
-                        <Settings className="w-4 h-4 mr-3" />
-                        Admin
-                      </Button>
-                    </Link>
-                  )}
+                  
                   
                   {/* Mobile Profile Section */}
                   <div className="border-t border-purple-100 pt-3 mt-3">
@@ -307,11 +289,11 @@ export default function Navbar() {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <span className="text-white font-bold text-sm">{user.fullName.charAt(0).toUpperCase()}</span>
+                          <span className="text-white font-bold text-sm">{user.user_metadata.full_name.charAt(0).toUpperCase()}</span>
                         )}
                       </div>
                       <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-700">{user.fullName}</div>
+                        <div className="text-sm font-medium text-gray-700">{user.user_metadata.full_name}</div>
                         <div className="text-xs text-gray-600">@{user.username}</div>
                       </div>
                     </div>

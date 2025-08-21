@@ -11,7 +11,7 @@ import { useAuth } from "@/lib/auth-context"
 import { toast } from "@/hooks/use-toast"
 
 export default function LoginForm() {
-  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
@@ -22,13 +22,13 @@ export default function LoginForm() {
     setLoading(true)
 
     try {
-      const success = await login(username, password)
+      const success = await login(email, password)
       if (success) {
         toast({
           title: "Success",
           description: "Logged in successfully!",
         })
-        router.push("/")
+        router.push("/user-dashboard")
       } else {
         toast({
           title: "Error",
@@ -71,10 +71,10 @@ export default function LoginForm() {
             <div>
               <Label htmlFor="email" className="text-sm font-semibold text-purple-700">Email</Label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="mt-2 bg-white/80 border border-purple-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-100 rounded-xl"
                 placeholder="Enter your email"

@@ -2,15 +2,16 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
-import { mockUsers, type User } from "./mock-data"
+import { createClient } from "@/lib/supabase/client"
+import { type User } from "@supabase/supabase-js"
 
 interface AuthContextType {
   user: User | null
   profileImageUrl: string | null
   setProfileImageUrl: (url: string | null) => void
   updateProfile: (updates: Partial<User>) => void
-  login: (username: string, password: string) => Promise<boolean>
-  signup: (username: string, password: string, fullName: string) => Promise<boolean>
+  login: (email: string, password: string) => Promise<boolean>
+  signup: (email: string, password: string, fullName: string) => Promise<boolean>
   logout: () => void
   isLoading: boolean
 }
@@ -18,84 +19,61 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const supabase = createClient()
   const [user, setUser] = useState<User | null>(null)
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check for stored user and profile image on mount
-    const storedUser = localStorage.getItem("quiz-app-user")
-    const storedImageUrl = localStorage.getItem("quiz-app-profile-image")
-    
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+      setIsLoading(false)
     }
-    
-    if (storedImageUrl) {
-      setProfileImageUrl(storedImageUrl)
+
+    getSession()
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => {
+      authListener.subscription.unsubscribe()
     }
-    
-    setIsLoading(false)
-  }, [])
+  }, [supabase.auth])
 
   const updateProfileImage = (url: string | null) => {
     setProfileImageUrl(url)
-    if (url) {
-      localStorage.setItem("quiz-app-profile-image", url)
-    } else {
-      localStorage.removeItem("quiz-app-profile-image")
-    }
   }
 
   const updateProfile = (updates: Partial<User>) => {
     if (user) {
       setUser({ ...user, ...updates })
-      localStorage.setItem("quiz-app-user", JSON.stringify({ ...user, ...updates }))
     }
   }
 
-  const login = async (username: string, password: string): Promise<boolean> => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    const foundUser = mockUsers.find((u) => u.username === username)
-    if (foundUser && password === "password") {
-      // Simple password check for demo
-      setUser(foundUser)
-      localStorage.setItem("quiz-app-user", JSON.stringify(foundUser))
-      return true
-    }
-    return false
+  const login = async (email: string, password: string): Promise<boolean> => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    return !error
   }
 
-  const signup = async (username: string, password: string, fullName: string): Promise<boolean> => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // Check if username already exists
-    const existingUser = mockUsers.find((u) => u.username === username)
-    if (existingUser) {
-      return false
-    }
-
-    const newUser: User = {
-      id: Date.now().toString(),
-      username,
-      fullName,
-      isAdmin: false,
-    }
-
-    mockUsers.push(newUser)
-    setUser(newUser)
-    localStorage.setItem("quiz-app-user", JSON.stringify(newUser))
-    return true
+  const signup = async (email: string, password: string, fullName: string): Promise<boolean> => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        }
+      }
+    })
+    return !error
   }
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut()
     setUser(null)
     setProfileImageUrl(null)
-    localStorage.removeItem("quiz-app-user")
-    localStorage.removeItem("quiz-app-profile-image")
   }
 
   return (
