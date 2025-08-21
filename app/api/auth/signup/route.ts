@@ -3,14 +3,21 @@ import { type NextRequest, NextResponse } from "next/server"
 let createClient: any
 let supabaseImportError: string | null = null
 
-try {
-  console.log("[v0] Attempting to import Supabase server client...")
-  const supabaseModule = await import("@/lib/supabase/server")
-  createClient = supabaseModule.createClient
-  console.log("[v0] Successfully imported Supabase server client")
-} catch (error) {
-  console.error("[v0] Failed to import Supabase server client:", error)
-  supabaseImportError = error instanceof Error ? error.message : "Unknown import error"
+// Function to dynamically import Supabase when needed
+async function getSupabaseClient() {
+  if (createClient) return createClient
+  
+  try {
+    console.log("[v0] Attempting to import Supabase server client...")
+    const supabaseModule = await import("@/lib/supabase/server")
+    createClient = supabaseModule.createClient
+    console.log("[v0] Successfully imported Supabase server client")
+    return createClient
+  } catch (error) {
+    console.error("[v0] Failed to import Supabase server client:", error)
+    supabaseImportError = error instanceof Error ? error.message : "Unknown import error"
+    throw error
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -22,23 +29,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log("[v0] Request body:", { ...body, password: body.password ? "[REDACTED]" : undefined })
     const { step } = body
-
-    if (supabaseImportError) {
-      console.log("[v0] Using mock response due to Supabase import error:", supabaseImportError)
-
-      if (step === "signup") {
-        return NextResponse.json({
-          message: "Account created successfully (mock). Please check your email for verification.",
-          user: { id: "mock-user-id", email: body.email },
-          needsVerification: true,
-        })
-      } else if (step === "verify-otp") {
-        return NextResponse.json({
-          message: "Email verified successfully (mock)",
-          user: { id: "mock-user-id", email: body.email },
-        })
-      }
-    }
 
     if (step === "signup") {
       const { email, password, fullName, role } = body
@@ -52,8 +42,9 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        console.log("[v0] Creating Supabase client...")
-        const supabase = await createClient()
+        console.log("[v0] Getting Supabase client...")
+        const clientCreator = await getSupabaseClient()
+        const supabase = await clientCreator()
         console.log("[v0] Supabase client created successfully")
 
         console.log("[v0] Attempting signup...")
@@ -67,7 +58,7 @@ export async function POST(request: NextRequest) {
             },
             emailRedirectTo:
               process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-              `${request.headers.get("origin") || "http://localhost:3000"}/dashboard`,
+              `${request.headers.get("origin") || "http://localhost:3000"}/user-dashboard`,
           },
         })
 
@@ -91,7 +82,8 @@ export async function POST(request: NextRequest) {
           needsVerification: !data.user?.email_confirmed_at,
         })
       } catch (clientError) {
-        console.error("[v0] Error creating Supabase client:", clientError)
+        console.error("[v0] Error with Supabase:", clientError)
+        console.log("[v0] Using mock response due to Supabase error")
         return NextResponse.json({
           message: "Account created successfully (mock). Please check your email for verification.",
           user: { id: "mock-user-id", email },
@@ -106,8 +98,9 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        console.log("[v0] Creating Supabase client for OTP verification...")
-        const supabase = await createClient()
+        console.log("[v0] Getting Supabase client for OTP verification...")
+        const clientCreator = await getSupabaseClient()
+        const supabase = await clientCreator()
 
         console.log("[v0] Attempting OTP verification...")
         const { data, error } = await supabase.auth.verifyOtp({
@@ -134,7 +127,7 @@ export async function POST(request: NextRequest) {
           user: data.user,
         })
       } catch (clientError) {
-        console.error("[v0] Error creating Supabase client for OTP:", clientError)
+        console.error("[v0] Error with Supabase for OTP:", clientError)
         console.log("[v0] Using mock OTP verification")
         return NextResponse.json({
           message: "Email verified successfully (mock)",

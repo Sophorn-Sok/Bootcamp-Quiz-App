@@ -222,8 +222,8 @@ export const mockUsers: User[] = [
   },
   {
     id: "3",
-    username: "jane_smith",
-    fullName: "Jane Smith",
+    username: "yaya tomato",
+    fullName: "yaya tomato",
     isAdmin: false,
   },
 ]
@@ -248,7 +248,7 @@ export const mockQuizAttempts: QuizAttempt[] = [
     totalQuestions: 10,
     timeTaken: 165,
     completedAt: "2024-01-15T11:15:00Z",
-    username: "jane_smith",
+    username: "yaya tomato",
     categoryName: "Science",
   },
   {
