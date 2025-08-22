@@ -107,7 +107,7 @@ export default function ProfilePage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-white font-bold text-3xl">{user.fullName.charAt(0).toUpperCase()}</span>
+                                            <span className="text-white font-bold text-3xl">{user.fullName.charAt(0).toUpperCase()}</span>
                     )}
                   </div>
                   <div className="absolute -bottom-1 -right-1 flex space-x-1">

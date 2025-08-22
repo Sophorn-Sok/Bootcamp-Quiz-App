@@ -11,11 +11,25 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/lib/auth-context"
-import { mockCategories, mockQuestions, type Question } from "@/lib/mock-data"
+import { createClient } from "@/lib/supabase/client"
 import { Plus, Search, Eye, Edit, Trash2, Calendar, MessageSquare, Settings, BookOpen, Users, ArrowLeft } from "lucide-react"
+
+interface Question {
+  id: string;
+  categoryId: string;
+  question: string;
+  optionA: string;
+  optionB: string;
+  optionC: string;
+  optionD: string;
+  correctAnswer: "A" | "B" | "C" | "D";
+  difficulty: "easy" | "medium" | "hard";
+}
 
 export default function AdminPage() {
   const { user } = useAuth()
+  const supabase = createClient()
+  const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showQuestionManagement, setShowQuestionManagement] = useState(false)
   const [questions, setQuestions] = useState<Question[]>([])
@@ -51,10 +65,36 @@ export default function AdminPage() {
       return
     }
 
-    setQuestions(mockQuestions)
-    setFilteredQuestions(mockQuestions)
-    setLoading(false)
-  }, [user, router])
+    const fetchInitialData = async () => {
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('categories')
+        .select('*')
+
+      if (categoriesError) {
+        console.error('Error fetching categories:', categoriesError)
+        setCategories([])
+      } else {
+        setCategories(categoriesData || [])
+      }
+
+      const { data: questionsData, error: questionsError } = await supabase
+        .from('questions')
+        .select('*')
+
+      if (questionsError) {
+        console.error('Error fetching questions:', questionsError)
+        setQuestions([])
+        setFilteredQuestions([])
+      } else {
+        setQuestions(questionsData || [])
+        setFilteredQuestions(questionsData || [])
+      }
+
+      setLoading(false)
+    }
+
+    fetchInitialData()
+  }, [user, router, supabase])
 
   useEffect(() => {
     let filtered = questions
@@ -95,11 +135,15 @@ export default function AdminPage() {
 
   const handleDeleteQuestion = async (questionId: string) => {
     if (confirm("Are you sure you want to delete this question?")) {
-      const updatedQuestions = questions.filter(q => q.id !== questionId)
-      setQuestions(updatedQuestions)
-      mockQuestions.splice(mockQuestions.findIndex(q => q.id === questionId), 1)
-      
-      alert("Question deleted successfully!")
+      const { error } = await supabase.from('questions').delete().match({ id: questionId })
+
+      if (error) {
+        alert('Error deleting question: ' + error.message)
+      } else {
+        const updatedQuestions = questions.filter(q => q.id !== questionId)
+        setQuestions(updatedQuestions)
+        alert("Question deleted successfully!")
+      }
     }
   }
 
@@ -107,59 +151,61 @@ export default function AdminPage() {
     e.preventDefault()
     setSubmitting(true)
 
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+    const questionData = {
+      categoryId,
+      question,
+      optionA,
+      optionB,
+      optionC,
+      optionD,
+      correctAnswer: correctAnswer as "A" | "B" | "C" | "D",
+      difficulty: difficulty as "easy" | "medium" | "hard",
+    }
 
+    try {
       if (editingQuestion) {
         // Update existing question
-        const updatedQuestion: Question = {
-          ...editingQuestion,
-          categoryId,
-          question,
-          optionA,
-          optionB,
-          optionC,
-          optionD,
-          correctAnswer: correctAnswer as "A" | "B" | "C" | "D",
-          difficulty: difficulty as "easy" | "medium" | "hard",
-        }
+        const { data, error } = await supabase
+          .from('questions')
+          .update(questionData)
+          .match({ id: editingQuestion.id })
+          .select()
 
-        const updatedQuestions = questions.map(q => 
-          q.id === editingQuestion.id ? updatedQuestion : q
-        )
-        setQuestions(updatedQuestions)
-        
-        const mockIndex = mockQuestions.findIndex(q => q.id === editingQuestion.id)
-        if (mockIndex !== -1) {
-          mockQuestions[mockIndex] = updatedQuestion
+        if (error) {
+          alert('Error updating question: ' + error.message)
+        } else if (data && data.length > 0) {
+          const updatedQuestion = data[0]
+          const updatedQuestions = questions.map(q => 
+            q.id === updatedQuestion.id ? updatedQuestion : q
+          )
+          setQuestions(updatedQuestions)
+          alert("Question updated successfully!")
+        } else {
+          alert("Question not found or no changes made.")
         }
-
-        alert("Question updated successfully!")
       } else {
         // Add new question
-        const newQuestion: Question = {
-          id: Date.now().toString(),
-          categoryId,
-          question,
-          optionA,
-          optionB,
-          optionC,
-          optionD,
-          correctAnswer: correctAnswer as "A" | "B" | "C" | "D",
-          difficulty: difficulty as "easy" | "medium" | "hard",
+        const { data, error } = await supabase
+          .from('questions')
+          .insert([questionData])
+          .select()
+
+        if (error) {
+          alert('Error adding question: ' + error.message)
+        } else if (data && data.length > 0) {
+          const newQuestion = data[0]
+          const updatedQuestions = [...questions, newQuestion]
+          setQuestions(updatedQuestions)
+          alert(`Question added. Total questions: ${updatedQuestions.length}`)
+        } else {
+          alert("Failed to add question.")
         }
-
-        const updatedQuestions = [...questions, newQuestion]
-        setQuestions(updatedQuestions)
-        mockQuestions.push(newQuestion)
-
-        alert(`Question added to ${mockCategories.find((c) => c.id === categoryId)?.name}. Total questions: ${updatedQuestions.length}`)
       }
 
       // Reset form
       resetForm()
-    } catch (error) {
-      alert("An unexpected error occurred")
+    } catch (error: any) {
+      alert("An unexpected error occurred: " + error.message)
     } finally {
       setSubmitting(false)
     }
@@ -188,7 +234,7 @@ export default function AdminPage() {
   }
 
   const getCategoryName = (categoryId: string) => {
-    return mockCategories.find(c => c.id === categoryId)?.name || "Unknown"
+    return categories.find(c => c.id === categoryId)?.name || "Unknown"
   }
 
   const formatDate = (date: Date) => {
@@ -258,14 +304,13 @@ export default function AdminPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  {mockCategories.map((category) => (
+                  {categories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-
               <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
                 <SelectTrigger className="w-32">
                   <SelectValue placeholder="Difficulty" />
@@ -444,7 +489,7 @@ export default function AdminPage() {
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        {mockCategories.map((category) => (
+                        {categories.map((category) => (
                           <SelectItem key={category.id} value={category.id}>
                             {category.name}
                           </SelectItem>
@@ -587,7 +632,7 @@ export default function AdminPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-blue-600">{mockQuestions.length}</p>
+              <p className="text-2xl font-bold text-blue-600">{questions.length}</p>
               <p className="text-xs text-gray-500 mt-1">Across all categories</p>
             </CardContent>
           </Card>
@@ -600,7 +645,7 @@ export default function AdminPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-green-600">{mockCategories.length}</p>
+              <p className="text-2xl font-bold text-green-600">{categories.length}</p>
               <p className="text-xs text-gray-500 mt-1">Across all categories</p>
             </CardContent>
           </Card>
@@ -644,8 +689,8 @@ export default function AdminPage() {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockCategories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
                           {category.name}
                         </SelectItem>
                       ))}

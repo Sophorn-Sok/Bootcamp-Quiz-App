@@ -5,9 +5,15 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/lib/auth-context"
-import { mockCategories, type Category } from "@/lib/mock-data"
 import { Play, BookOpen, Clock, Trophy, Brain, Zap, Target, Star } from "lucide-react"
+
+interface Category {
+  id: string;
+  name: string;
+  description: string;
+}
 
 const categoryIcons = {
   "1": "🌍", // General Knowledge
@@ -27,15 +33,34 @@ const categoryColors = {
 
 export default function HomePage() {
   const { user, isLoading } = useAuth()
-  const [categories] = useState<Category[]>(mockCategories)
+  const supabase = createClient()
+  const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>("")
   const router = useRouter()
+
+  useEffect(() => {
+    // Reset selected category when the page is loaded or shown
+    // This helps when the user navigates back from a quiz.
+    setSelectedCategory("");
+  }, []);
 
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/auth/login")
     }
   }, [user, isLoading, router])
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data, error } = await supabase.from('categories').select('*')
+      if (error) {
+        console.error('Error fetching categories:', error)
+      } else {
+        setCategories(data || [])
+      }
+    }
+    fetchCategories()
+  }, [supabase])
 
   const startQuiz = () => {
     if (selectedCategory) {
@@ -140,11 +165,11 @@ export default function HomePage() {
                 <label className="text-lg font-semibold mb-4 block text-gray-700">Choose Your Challenge 🎲</label>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger className="h-14 rounded-2xl border-2 text-lg font-medium">
-                    <SelectValue placeholder="Pick a category to get started! 🤔" />
+                    <SelectValue placeholder="4" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl">
                     {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id} className="text-lg p-4 rounded-xl">
+                      <SelectItem key={category.id} value={category.id.toString()} className="text-lg p-4 rounded-xl">
                         <div className="flex items-center space-x-3">
                           <span className="text-2xl">{categoryIcons[category.id as keyof typeof categoryIcons]}</span>
                           <span>{category.name}</span>
@@ -255,7 +280,7 @@ export default function HomePage() {
               >
                 <CardContent className="p-6 text-center">
                   <div
-                    className={`w-16 h-16 bg-gradient-to-r ${categoryColors[category.id as keyof typeof categoryColors]} rounded-2xl flex items-center justify-center mx-auto mb-4`}
+                    className={`w-16 h-16 bg-gradient-to-r ${categoryColors[String(category.id) as keyof typeof categoryColors]} rounded-2xl flex items-center justify-center mx-auto mb-4`}
                   >
                     <span className="text-3xl">{categoryIcons[category.id as keyof typeof categoryIcons]}</span>
                   </div>

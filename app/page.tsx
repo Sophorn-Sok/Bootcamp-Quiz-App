@@ -6,8 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/lib/auth-context"
-import { mockCategories, type Category } from "@/lib/mock-data"
+import { createClient } from "@/lib/supabase/client"
 import { Play, BookOpen, Clock, Trophy, Brain, Zap, Target, Star } from "lucide-react"
+
+interface Category {
+  id: string
+  name: string
+  description: string
+}
 
 const categoryIcons = {
   "1": "🌍", // General Knowledge
@@ -27,9 +33,10 @@ const categoryColors = {
 
 export default function HomePage() {
   const { user, isLoading } = useAuth()
-  const [categories] = useState<Category[]>(mockCategories)
+  const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>("")
   const router = useRouter()
+  const supabase = createClient()
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -37,13 +44,25 @@ export default function HomePage() {
     }
   }, [user, isLoading, router])
 
-  const startQuiz = () => {
-    if (selectedCategory) {
-      router.push(`/quiz/${selectedCategory}`)
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data, error } = await supabase.from("categories").select("*")
+      if (error) {
+        console.error("Error fetching categories:", error)
+      } else {
+        setCategories(data as Category[])
+      }
+    }
+    fetchCategories()
+  }, [supabase])
+
+  const startQuiz = (categoryId: string) => {
+    if (categoryId) {
+      router.push(`/quiz/${categoryId}`)
     }
   }
 
-  if (isLoading) {
+  if (isLoading || !categories.length) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -156,7 +175,7 @@ export default function HomePage() {
               </div>
 
               <Button
-                onClick={startQuiz}
+                onClick={() => startQuiz(selectedCategory)}
                 disabled={!selectedCategory}
                 className="w-full h-16 rounded-2xl text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 active:scale-95"
               >
@@ -250,7 +269,7 @@ export default function HomePage() {
                 className="quiz-card cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl"
                 onClick={() => {
                   setSelectedCategory(category.id)
-                  startQuiz()
+                  startQuiz(category.id)
                 }}
               >
                 <CardContent className="p-6 text-center">

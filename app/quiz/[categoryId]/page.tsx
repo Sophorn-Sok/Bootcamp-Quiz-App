@@ -1,211 +1,192 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/lib/auth-context"
-import { mockQuestions, mockCategories, mockQuizAttempts, type Question } from "@/lib/mock-data"
-import { Clock, CheckCircle, Zap, Brain, Star, Trophy, Target } from "lucide-react"
+import { Check, X, Clock, Zap, Brain, Target } from "lucide-react"
 
-const questionIcons = {
-  "1": "🌍", // General Knowledge
-  "2": "🔬", // Science
-  "3": "🏛️", // History
-  "4": "⚽", // Sports
-  "5": "💻", // Technology
+const TIMER_SECONDS = 15
+
+interface Question {
+  id: string
+  categoryId: string
+  question: string
+  optionA: string
+  optionB: string
+  optionC: string
+  optionD: string
+  correctAnswer: "A" | "B" | "C" | "D"
+  difficulty: "easy" | "medium" | "hard"
 }
 
-const answerEmojis = ["A", "B", "C", "D"]
+interface Category {
+  id: string
+  name: string
+  description: string
+}
 
-export default function QuizPage() {
-  const { user } = useAuth()
+export default function QuizPage({ params }: { params: { categoryId: string } }) {
+  const { categoryId } = params
   const [questions, setQuestions] = useState<Question[]>([])
+  const [category, setCategory] = useState<Category | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [selectedAnswer, setSelectedAnswer] = useState<string>("")
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
   const [score, setScore] = useState(0)
-  const [timeLeft, setTimeLeft] = useState(30)
-  const [quizCompleted, setQuizCompleted] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [startTime, setStartTime] = useState<Date>(new Date())
+  const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS)
+  const [quizFinished, setQuizFinished] = useState(false)
+  const [timeTaken, setTimeTaken] = useState(0)
   const [showFeedback, setShowFeedback] = useState(false)
-  const [isCorrect, setIsCorrect] = useState(false)
-
   const router = useRouter()
-  const params = useParams()
-  const categoryId = params.categoryId as string
-  const category = mockCategories.find((c) => c.id === categoryId)
+  const supabase = createClient()
+  const { user } = useAuth()
 
   useEffect(() => {
-    if (!user) {
-      router.push("/auth/login")
-      return
+    const fetchQuestionsAndCategory = async () => {
+      const { data: questionsData, error: questionsError } = await supabase
+        .from("questions")
+        .select("*")
+        .eq("categoryId", categoryId)
+
+      if (questionsError) {
+        console.error("Error fetching questions:", questionsError)
+      } else {
+        setQuestions(questionsData as Question[])
+      }
+
+      const { data: categoryData, error: categoryError } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("id", categoryId)
+        .single()
+
+      if (categoryError) {
+        console.error("Error fetching category:", categoryError)
+      } else {
+        setCategory(categoryData as Category)
+      }
     }
 
-    const categoryQuestions = mockQuestions.filter((q) => q.categoryId === categoryId)
-    const shuffled = [...categoryQuestions].sort(() => 0.5 - Math.random()).slice(0, 10)
-    setQuestions(shuffled)
-    setStartTime(new Date())
-    setLoading(false)
-  }, [user, router, categoryId])
+    if (categoryId) {
+      fetchQuestionsAndCategory()
+    }
+  }, [categoryId, supabase])
 
   useEffect(() => {
-    if (timeLeft > 0 && !quizCompleted && questions.length > 0 && !showFeedback) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
-      return () => clearTimeout(timer)
-    } else if (timeLeft === 0 && !quizCompleted && questions.length > 0 && !showFeedback) {
-      handleNextQuestion()
-    }
-  }, [timeLeft, quizCompleted, questions.length, showFeedback])
+    if (quizFinished) return
 
-  const handleAnswerSelect = (answer: string) => {
+    const timer = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime === 1) {
+          handleNextQuestion()
+          return TIMER_SECONDS
+        }
+        return prevTime - 1
+      })
+      setTimeTaken((prev) => prev + 1)
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [currentQuestionIndex, quizFinished])
+
+  const handleAnswerSelect = (option: string) => {
     if (showFeedback) return
-    setSelectedAnswer(answer)
-  }
 
-  const handleNextQuestion = async () => {
-    const correct = selectedAnswer === questions[currentQuestionIndex]?.correctAnswer
+    setSelectedAnswer(option)
+    const correct = questions[currentQuestionIndex].correctAnswer === option
     setIsCorrect(correct)
+    if (correct) {
+      setScore(score + 1)
+    }
     setShowFeedback(true)
 
     setTimeout(() => {
-      let newScore = score
-      if (correct) {
-        newScore = score + 1
-        setScore(newScore)
-      }
-
-      if (currentQuestionIndex + 1 < questions.length) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1)
-        setSelectedAnswer("")
-        setTimeLeft(30)
-        setShowFeedback(false)
-      } else {
-        setQuizCompleted(true)
-        saveQuizResult(newScore)
-      }
-    }, 2000)
+      handleNextQuestion()
+    }, 1500)
   }
 
-  const saveQuizResult = async (finalScore: number) => {
-    if (!user) return
+  const handleNextQuestion = () => {
+    setShowFeedback(false)
+    setSelectedAnswer(null)
+    setIsCorrect(null)
+    setTimeLeft(TIMER_SECONDS)
 
-    const endTime = new Date()
-    const timeTaken = Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
-
-    const newAttempt = {
-      id: Date.now().toString(),
-      userId: user.id,
-      categoryId: categoryId,
-      score: finalScore,
-      totalQuestions: questions.length,
-      timeTaken: timeTaken,
-      completedAt: new Date().toISOString(),
-      username: user.username,
-      categoryName: category?.name || "Unknown",
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1)
+    } else {
+      setQuizFinished(true)
     }
-
-    mockQuizAttempts.unshift(newAttempt)
   }
 
-  if (loading) {
+  const getButtonClass = (option: string) => {
+    if (!showFeedback) {
+      return "bg-white hover:bg-gray-100 text-gray-800"
+    }
+    const isSelected = selectedAnswer === option
+    const isCorrectAnswer = questions[currentQuestionIndex].correctAnswer === option
+
+    if (isCorrectAnswer) {
+      return "bg-green-500 text-white"
+    }
+    if (isSelected && !isCorrect) {
+      return "bg-red-500 text-white"
+    }
+    return "bg-white text-gray-800 opacity-50"
+  }
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
+  }
+
+  useEffect(() => {
+    if (quizFinished && user) {
+      const saveAttempt = async () => {
+        const { data: quizData, error: quizError } = await supabase
+          .from("quizzes")
+          .select("id")
+          .eq("category", category?.name)
+          .single()
+
+        if (quizError || !quizData) {
+          console.error("Error fetching quiz id:", quizError)
+          return
+        }
+
+        const attempt = {
+          userId: user.id,
+          quizId: quizData.id,
+          score: score,
+          completedAt: new Date().toISOString(),
+          total_questions: questions.length,
+          time_taken: timeTaken,
+        }
+
+        const { error } = await supabase.from("user_quiz_attempts").insert([attempt])
+
+        if (error) {
+          console.error("Error saving quiz attempt:", error)
+        }
+      }
+
+      saveAttempt()
+    }
+  }, [quizFinished, user, score, questions.length, timeTaken, category, supabase])
+
+  if (questions.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse mx-auto mb-6 flex items-center justify-center">
-            <Brain className="w-10 h-10 text-white" />
+          <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-spin mx-auto mb-4 flex items-center justify-center">
+            <Brain className="w-8 h-8 text-white" />
           </div>
-          <p className="text-2xl font-playful text-gray-600">Preparing your quiz... 🎯</p>
+          <p className="text-lg font-bold text-gray-600">Loading questions... 🧠</p>
         </div>
-      </div>
-    )
-  }
-
-  if (!user || questions.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="quiz-card p-8 text-center">
-          <div className="text-6xl mb-4">😅</div>
-          <h2 className="text-2xl font-playful text-gray-800 mb-4">Oops! No questions here</h2>
-          <p className="text-gray-600 mb-6">This category needs some questions first!</p>
-          <Button onClick={() => router.push("/")} className="rounded-2xl">
-            Go Back Home 🏠
-          </Button>
-        </Card>
-      </div>
-    )
-  }
-
-  if (quizCompleted) {
-    const percentage = Math.round((score / questions.length) * 100)
-
-    let emoji = "🎉"
-    let message = "Amazing work!"
-    let color = "from-green-400 to-emerald-500"
-
-    if (percentage >= 90) {
-      emoji = "🏆"
-      message = "Perfect! You're a genius!"
-      color = "from-yellow-400 to-orange-500"
-    } else if (percentage >= 70) {
-      emoji = "⭐"
-      message = "Great job! Keep it up!"
-      color = "from-blue-400 to-purple-500"
-    } else if (percentage >= 50) {
-      emoji = "👍"
-      message = "Good effort! Practice makes perfect!"
-      color = "from-green-400 to-blue-500"
-    } else {
-      emoji = "💪"
-      message = "Don't give up! Try again!"
-      color = "from-pink-400 to-red-500"
-    }
-
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="quiz-card w-full max-w-lg overflow-hidden">
-          <CardHeader className={`bg-gradient-to-r ${color} text-white text-center pb-8`}>
-            <div className="text-8xl mb-4 emoji-bounce">{emoji}</div>
-            <CardTitle className="text-3xl font-playful mb-2">{message}</CardTitle>
-            <p className="text-xl opacity-90">Quiz Complete!</p>
-          </CardHeader>
-          <CardContent className="p-8 text-center space-y-6">
-            <div className="space-y-4">
-              <div className="text-6xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                {score}/{questions.length}
-              </div>
-              <div className="text-2xl font-semibold text-gray-700">{percentage}% Correct</div>
-              <div className="flex justify-center space-x-6 text-sm text-gray-600">
-                <div className="flex items-center">
-                  <Clock className="w-4 h-4 mr-1" />
-                  {Math.floor((Date.now() - startTime.getTime()) / 1000)}s
-                </div>
-                <div className="flex items-center">
-                  <Target className="w-4 h-4 mr-1" />
-                  {category?.name}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <Button
-                onClick={() => router.push("/")}
-                className="w-full h-14 rounded-2xl text-lg font-bold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-all duration-300 hover:scale-105"
-              >
-                <Zap className="w-5 h-5 mr-2" />
-                Take Another Quiz! 🚀
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push("/leaderboard")}
-                className="w-full h-14 rounded-2xl text-lg font-semibold border-2 hover:bg-yellow-50 hover:border-yellow-300 transition-all duration-300 hover:scale-105"
-              >
-                <Trophy className="w-5 h-5 mr-2" />
-                View Leaderboard 🏆
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     )
   }
@@ -213,130 +194,116 @@ export default function QuizPage() {
   const currentQuestion = questions[currentQuestionIndex]
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100
 
+  if (quizFinished) {
+    const accuracy = (score / questions.length) * 100
+
+    return (
+      <div className="min-h-screen flex items-center justify-center py-12">
+        <Card className="w-full max-w-2xl text-center quiz-card">
+          <CardHeader>
+            <CardTitle className="text-3xl font-playful bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4">
+              Quiz Complete! 🎉
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div className="p-4 bg-gray-100 rounded-lg">
+                <p className="text-lg font-semibold text-gray-600">Score</p>
+                <p className="text-3xl font-bold text-green-500">
+                  {score} / {questions.length}
+                </p>
+              </div>
+              <div className="p-4 bg-gray-100 rounded-lg">
+                <p className="text-lg font-semibold text-gray-600">Accuracy</p>
+                <p className="text-3xl font-bold text-blue-500">{accuracy.toFixed(0)}%</p>
+              </div>
+              <div className="p-4 bg-gray-100 rounded-lg">
+                <p className="text-lg font-semibold text-gray-600">Time</p>
+                <p className="text-3xl font-bold text-purple-500">{formatTime(timeTaken)}</p>
+              </div>
+            </div>
+            <div className="flex justify-center space-x-4 mt-8">
+              <Button onClick={() => router.push("/")} className="h-12 px-6 text-lg">
+                Play Again
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/leaderboard")}
+                className="h-12 px-6 text-lg"
+              >
+                View Leaderboard
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Progress Header */}
-        <div className="mb-8">
+    <div className="min-h-screen flex items-center justify-center py-12">
+      <Card className="w-full max-w-3xl quiz-card">
+        <CardHeader className="pb-4">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center space-x-3">
-              <div className="text-3xl">{questionIcons[categoryId as keyof typeof questionIcons]}</div>
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                <Target className="w-6 h-6 text-white" />
+              </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">{category?.name}</h1>
-                <p className="text-sm text-gray-600">
+                <CardTitle className="text-2xl font-playful text-gray-800">{category?.name || "Quiz"}</CardTitle>
+                <p className="text-gray-500">
                   Question {currentQuestionIndex + 1} of {questions.length}
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm rounded-2xl px-4 py-2 shadow-lg">
-                <Clock className="w-5 h-5 text-purple-500" />
-                <span
-                  className={`text-lg font-bold ${timeLeft <= 10 ? "text-red-500 animate-pulse" : "text-gray-700"}`}
-                >
-                  {timeLeft}s
-                </span>
-              </div>
-              <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm rounded-2xl px-4 py-2 shadow-lg">
-                <Star className="w-5 h-5 text-yellow-500" />
-                <span className="text-lg font-bold text-gray-700">{score}</span>
-              </div>
+            <div className="flex items-center space-x-2 bg-gray-100 px-3 py-2 rounded-lg">
+              <Clock className="w-5 h-5 text-red-500" />
+              <span className="text-xl font-bold text-red-500">{timeLeft}</span>
             </div>
           </div>
-          <div className="relative">
-            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-              <div
-                className="progress-bar h-full transition-all duration-500 ease-out"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-xs font-bold text-white drop-shadow-lg">{Math.round(progress)}%</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Question Card */}
-        <Card className="quiz-card mb-8 overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white pb-8">
-            <CardTitle className="text-2xl font-playful leading-relaxed">{currentQuestion.question}</CardTitle>
-          </CardHeader>
-          <CardContent className="p-8">
-            <div className="grid gap-4">
-              {[
-                { key: "A", text: currentQuestion.optionA },
-                { key: "B", text: currentQuestion.optionB },
-                { key: "C", text: currentQuestion.optionC },
-                { key: "D", text: currentQuestion.optionD },
-              ].map((option, index) => {
-                let buttonClass = "answer-button"
-
-                if (showFeedback) {
-                  if (option.key === currentQuestion.correctAnswer) {
-                    buttonClass +=
-                      " bg-gradient-to-r from-green-400 to-emerald-500 text-white border-green-500 shadow-lg shadow-green-200"
-                  } else if (option.key === selectedAnswer && selectedAnswer !== currentQuestion.correctAnswer) {
-                    buttonClass +=
-                      " bg-gradient-to-r from-red-400 to-pink-500 text-white border-red-500 shadow-lg shadow-red-200"
-                  }
-                } else if (selectedAnswer === option.key) {
-                  buttonClass += " selected"
-                }
-
-                return (
-                  <Button
-                    key={option.key}
-                    variant="outline"
-                    className={buttonClass}
-                    onClick={() => handleAnswerSelect(option.key)}
-                    disabled={showFeedback}
+          <Progress value={progress} className="w-full" />
+        </CardHeader>
+        <CardContent className="pt-6">
+          <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center text-gray-900">
+            {currentQuestion.question}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(new Array(4).fill(0).map((_, i) => String.fromCharCode(65 + i)) as ("A" | "B" | "C" | "D")[]).map((option) => (
+              <Button
+                key={option}
+                onClick={() => handleAnswerSelect(option)}
+                disabled={showFeedback}
+                className={`h-auto py-4 px-6 text-lg justify-start transition-all duration-300 transform hover:scale-105 ${getButtonClass(
+                  option,
+                )}`}
+              >
+                <div className="flex items-center">
+                  <div
+                    className={`w-8 h-8 rounded-md mr-4 flex items-center justify-center font-bold border-2 ${
+                      showFeedback && questions[currentQuestionIndex].correctAnswer === option
+                        ? "bg-white text-green-500 border-green-500"
+                        : showFeedback && selectedAnswer === option
+                          ? "bg-white text-red-500 border-red-500"
+                          : "bg-gray-200 text-gray-700 border-gray-300"
+                    }`}
                   >
-                    <div className="flex items-center w-full">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-pink-400 rounded-xl flex items-center justify-center text-white font-bold text-lg">
-                          {answerEmojis[index]}
-                        </div>
-                        <span className="text-lg font-medium">{option.text}</span>
-                      </div>
-                    </div>
-                  </Button>
-                )
-              })}
-            </div>
-
-            {showFeedback && (
-              <div className="mt-6 text-center">
-                <div className={`text-6xl mb-4 emoji-bounce`}>{isCorrect ? "🎉" : "😅"}</div>
-                <p className="text-xl font-playful text-gray-700">
-                  {isCorrect ? "Awesome! That's correct! 🌟" : "Oops! Better luck next time! 💪"}
-                </p>
-              </div>
-            )}
-
-            {!showFeedback && (
-              <div className="mt-8">
-                <Button
-                  onClick={handleNextQuestion}
-                  disabled={!selectedAnswer}
-                  className="w-full h-16 rounded-2xl text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 active:scale-95"
-                >
-                  {selectedAnswer ? (
-                    <>
-                      <CheckCircle className="w-6 h-6 mr-3" />
-                      {currentQuestionIndex + 1 === questions.length ? "Finish Quiz! 🏁" : "Next Question! ➡️"}
-                    </>
-                  ) : (
-                    <>
-                      <span className="emoji-bounce mr-2">🤔</span>
-                      Pick an answer first!
-                    </>
+                    {option}
+                  </div>
+                  <span>{currentQuestion[`option${option}` as keyof Question]}</span>
+                </div>
+                {showFeedback && questions[currentQuestionIndex].correctAnswer === option && (
+                  <Check className="w-6 h-6 ml-auto text-white" />
+                )}
+                {showFeedback &&
+                  selectedAnswer === option &&
+                  questions[currentQuestionIndex].correctAnswer !== option && (
+                    <X className="w-6 h-6 ml-auto text-white" />
                   )}
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

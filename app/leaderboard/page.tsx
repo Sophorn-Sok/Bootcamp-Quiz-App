@@ -1,20 +1,73 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { mockQuizAttempts, type QuizAttempt } from "@/lib/mock-data"
+import { createClient } from "@/lib/supabase/client"
 import { Trophy, Medal, Clock, Zap, Star, Crown } from "lucide-react"
 
+export interface QuizAttempt {
+  id: string
+  userId: string
+  categoryId: string
+  score: number
+  totalQuestions: number
+  timeTaken: number
+  completedAt: string
+  username: string
+  categoryName: string
+}
+
 export default function LeaderboardPage() {
-  const [leaderboard] = useState<QuizAttempt[]>(
-    [...mockQuizAttempts].sort((a, b) => {
-      if (b.score !== a.score) {
-        return b.score - a.score
+  const [leaderboard, setLeaderboard] = useState<QuizAttempt[]>([])
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      const { data: attempts, error } = await supabase
+        .from("user_quiz_attempts")
+        .select(
+          `
+          *,
+          users(username),
+          quizzes(category, questions(*))
+        `
+        )
+        .order("score", { ascending: false })
+
+      if (error) {
+        console.error("Error fetching leaderboard:", error)
+        setLeaderboard([])
+      } else if (attempts) {
+        const formattedLeaderboard = attempts.map((attempt: any) => {
+          const timeTaken = attempt.completedAt ? new Date(attempt.completedAt).getTime() - new Date(attempt.startedAt).getTime() : 0
+          return {
+            id: attempt.id,
+            userId: attempt.userId,
+            categoryId: attempt.quizzes.category,
+            score: attempt.score,
+            totalQuestions: attempt.quizzes.questions.length,
+            timeTaken: Math.round(timeTaken / 1000),
+            completedAt: attempt.completedAt,
+            username: attempt.users.username,
+            categoryName: attempt.quizzes.category,
+          }
+        })
+        setLeaderboard(
+          formattedLeaderboard.sort((a, b) => {
+            if (b.score !== a.score) {
+              return b.score - a.score
+            }
+            return a.timeTaken - b.timeTaken
+          })
+        )
       }
-      return a.timeTaken - b.timeTaken
-    }),
-  )
+      setLoading(false)
+    }
+
+    fetchLeaderboard()
+  }, [supabase])
 
   const getRankIcon = (index: number) => {
     switch (index) {
@@ -50,6 +103,19 @@ export default function LeaderboardPage() {
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-spin mx-auto mb-4 flex items-center justify-center">
+            <Trophy className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-lg font-bold text-gray-600">Loading Leaderboard... 🏆</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -218,6 +284,7 @@ export default function LeaderboardPage() {
                           <div className="flex items-center space-x-2 mt-1">
                             <Badge variant="secondary" className="rounded-xl text-xs">
                               {getRankBadge(index)}
+
                             </Badge>
                             <Badge variant="outline" className="rounded-lg text-xs">
                               {entry.categoryName}
