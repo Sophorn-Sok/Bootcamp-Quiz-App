@@ -34,8 +34,6 @@ export default function HomePage() {
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/auth/login")
-    } else if (!isLoading && user && user.user_metadata.role === 'admin') {
-      router.push("/admin")
     }
   }, [user, isLoading, router])
 
@@ -111,6 +109,17 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+        {user && user.user_metadata.role === 'admin' && (
+          <div className="text-center mb-8">
+            <Button
+              onClick={() => router.push("/admin")}
+              className="h-12 px-8 text-lg font-bold bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all duration-300 hover:scale-105"
+            >
+              Go to Admin Dashboard
+            </Button>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Quiz Starter */}

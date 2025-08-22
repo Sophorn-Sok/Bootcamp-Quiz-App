@@ -110,6 +110,17 @@ export default function HomePage() {
           </div>
         </div>
 
+        {user && user.user_metadata.role === 'admin' && (
+          <div className="text-center mb-8">
+            <Button
+              onClick={() => router.push("/admin")}
+              className="h-12 px-8 text-lg font-bold bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all duration-300 hover:scale-105"
+            >
+              Go to Admin Dashboard
+            </Button>
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Quiz Starter */}
           <Card className="quiz-card border-0 overflow-hidden">
