@@ -11,7 +11,8 @@ interface AuthContextType {
   setProfileImageUrl: (url: string | null) => void
   updateProfile: (updates: Partial<User>) => void
   login: (email: string, password: string) => Promise<boolean>
-  signup: (email: string, password: string, fullName: string) => Promise<boolean>
+  signup: (email: string, password: string, fullName: string, role: string) => Promise<boolean>
+  verifyOtp: (email: string, token: string) => Promise<boolean>
   logout: () => void
   isLoading: boolean
 }
@@ -57,18 +58,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return !error
   }
 
-  const signup = async (email: string, password: string, fullName: string): Promise<boolean> => {
+  const signup = async (email: string, password: string, fullName: string, role: string): Promise<boolean> => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
+          role: role,
         }
       }
     })
     return !error
   }
+
+  const verifyOtp = async (email: string, token: string): Promise<boolean> => {
+    const { error } = await supabase.auth.verifyOtp({ email, token, type: 'signup' });
+    return !error;
+  };
 
   const logout = async () => {
     await supabase.auth.signOut()
@@ -84,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       updateProfile,
       login, 
       signup, 
+      verifyOtp,
       logout, 
       isLoading 
     }}>

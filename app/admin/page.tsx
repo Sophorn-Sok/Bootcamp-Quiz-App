@@ -46,7 +46,7 @@ export default function AdminPage() {
       return
     }
 
-    if (!user.isAdmin) {
+    if (user.user_metadata.role !== 'admin') {
       router.push("/")
       return
     }
@@ -212,7 +212,7 @@ export default function AdminPage() {
     )
   }
 
-  if (!user || !user.isAdmin) {
+    if (!user || user.user_metadata.role !== 'admin') {
     return null
   }
 
@@ -563,12 +563,18 @@ export default function AdminPage() {
           <p className="text-gray-600">Manage quiz questions and categories</p>
         </div>
 
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 flex justify-center space-x-4">
           <Button 
             onClick={() => setShowQuestionManagement(true)}
             className="bg-purple-600 hover:bg-purple-700 text-lg px-8 py-3"
           >
             Manage Questions
+          </Button>
+          <Button 
+            onClick={() => router.push("/leaderboard")}
+            className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
+          >
+            View Leaderboard
           </Button>
         </div>
 

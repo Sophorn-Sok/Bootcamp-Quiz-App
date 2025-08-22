@@ -7,6 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/lib/auth-context"
 import { toast } from "@/hooks/use-toast"
@@ -16,6 +17,7 @@ export default function SignupForm() {
   const [password, setPassword] = useState("")
   const [fullName, setFullName] = useState("")
   const [loading, setLoading] = useState(false)
+  const [role, setRole] = useState("user") // Added role state
   const { signup } = useAuth()
   const router = useRouter()
 
@@ -24,13 +26,13 @@ export default function SignupForm() {
     setLoading(true)
 
     try {
-      const success = await signup(email, password, fullName)
+      const success = await signup(email, password, fullName, role)
       if (success) {
         toast({
           title: "Success",
           description: "Account created! Please check your email to verify your account.",
         })
-        router.push("/auth/login")
+        router.push(`/auth/verify-otp?email=${encodeURIComponent(email)}`)
       } else {
         toast({
           title: "Error",
@@ -107,6 +109,26 @@ export default function SignupForm() {
                 className="mt-2 bg-white/80 border border-purple-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-100 rounded-xl"
                 placeholder="Enter your password"
               />
+            </div>
+            {/* Role Selection */}
+            <div>
+              <Label htmlFor="role" className="text-sm font-semibold text-purple-700">
+                Role
+              </Label>
+              <RadioGroup
+                defaultValue="user"
+                onValueChange={(value) => setRole(value)}
+                className="flex space-x-4 mt-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="user" id="role-user" />
+                  <Label htmlFor="role-user">User</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="admin" id="role-admin" />
+                  <Label htmlFor="role-admin">Admin</Label>
+                </div>
+              </RadioGroup>
             </div>
             <Button
               type="submit"

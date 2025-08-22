@@ -34,6 +34,8 @@ export default function HomePage() {
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/auth/login")
+    } else if (!isLoading && user && user.user_metadata.role === 'admin') {
+      router.push("/admin")
     }
   }, [user, isLoading, router])
 
