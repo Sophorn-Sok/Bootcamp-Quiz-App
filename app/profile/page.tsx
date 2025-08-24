@@ -90,10 +90,10 @@ export default function ProfilePage() {
 
   const handleCancel = () => {
     setFormData({
-      fullName: user?.fullName || "",
-      username: user?.username || "",
-      bio: "Passionate learner and quiz enthusiast! 🎓",
-      location: "Student"
+      fullName: user?.user_metadata?.full_name || "",
+      username: user?.user_metadata?.username || "",
+      bio: user?.user_metadata?.bio || "",
+      location: user?.user_metadata?.location || ""
     })
     setIsEditing(false)
   }
@@ -131,7 +131,7 @@ export default function ProfilePage() {
                       />
                     ) : (
                       <span className="text-white font-bold text-3xl">
-                        {user?.fullName?.charAt(0)?.toUpperCase() || "U"}
+                        {user?.user_metadata?.full_name?.charAt(0)?.toUpperCase() || "U"}
                       </span>
                     )}
                   </div>
@@ -169,10 +169,10 @@ export default function ProfilePage() {
                   />
                 </div>
                 <CardTitle className="text-xl font-bold text-gray-800">
-                  {user?.fullName || "User"}
+                  {user?.user_metadata?.full_name || "User"}
                 </CardTitle>
-                <p className="text-gray-600">@{user?.username || "username"}</p>
-                {user?.isAdmin && (
+                <p className="text-gray-600">@{user?.user_metadata?.username || "username"}</p>
+                {user?.user_metadata?.isAdmin && (
                   <span className="inline-block mt-2 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full">
                     Admin
                   </span>

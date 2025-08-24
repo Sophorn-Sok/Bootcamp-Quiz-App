@@ -41,6 +41,7 @@ export default function QuizPage({ params }: { params: { categoryId: string } })
   const [quizFinished, setQuizFinished] = useState(false)
   const [timeTaken, setTimeTaken] = useState(0)
   const [showFeedback, setShowFeedback] = useState(false)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
   const supabase = createClient()
   const { user } = useAuth()
@@ -69,6 +70,7 @@ export default function QuizPage({ params }: { params: { categoryId: string } })
       } else {
         setCategory(categoryData as Category)
       }
+      setLoading(false)
     }
 
     if (categoryId) {
@@ -178,7 +180,7 @@ export default function QuizPage({ params }: { params: { categoryId: string } })
     }
   }, [quizFinished, user, score, questions.length, timeTaken, category, supabase])
 
-  if (questions.length === 0) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -186,6 +188,21 @@ export default function QuizPage({ params }: { params: { categoryId: string } })
             <Brain className="w-8 h-8 text-white" />
           </div>
           <p className="text-lg font-bold text-gray-600">Loading questions... 🧠</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (questions.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <Zap className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">No Questions Yet!</h2>
+          <p className="text-gray-600">There are no questions available for this category yet. Please check back later.</p>
+          <Button onClick={() => router.push('/')} className="mt-6">Back to Home</Button>
         </div>
       </div>
     )
