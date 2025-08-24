@@ -165,7 +165,7 @@ export default function HomePage() {
                 <label className="text-lg font-semibold mb-4 block text-gray-700">Choose Your Challenge 🎲</label>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger className="h-14 rounded-2xl border-2 text-lg font-medium">
-                    <SelectValue placeholder="4" />
+                    <SelectValue placeholder="Select Categories Here!" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl">
                     {categories.map((category) => (

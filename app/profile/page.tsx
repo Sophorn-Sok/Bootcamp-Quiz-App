@@ -12,15 +12,15 @@ import { useImageUpload } from "@/hooks/use-image-upload"
 import { Camera, Edit3, User, Trophy, Clock, BookOpen, Target } from "lucide-react"
 
 export default function ProfilePage() {
-  const { user, updateProfile } = useAuth()
+  const { user, updateProfile, isLoading } = useAuth()
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [formData, setFormData] = useState({
-    fullName: user?.fullName || "",
-    username: user?.username || "",
-    bio: "Passionate learner and quiz enthusiast! 🎓",
-    location: "Student"
+    fullName: user?.user_metadata?.full_name || "",
+    username: user?.user_metadata?.username || "",
+    bio: user?.user_metadata?.bio || "",
+    location: user?.user_metadata?.location || ""
   })
 
   const {
@@ -30,34 +30,56 @@ export default function ProfilePage() {
     handleImageUpload,
     triggerFileInput,
     removeImage
-  } = useImageUpload()
+  } = useImageUpload({
+    user,
+    updateProfile,
+    initialImageUrl: user?.user_metadata?.avatar_url as string | null,
+  })
 
   // Update form data when user data changes
   useEffect(() => {
     if (user) {
       setFormData({
-        fullName: user.fullName,
-        username: user.username,
-        bio: "Passionate learner and quiz enthusiast! 🎓",
-        location: "Student"
+        fullName: user.user_metadata?.full_name || "",
+        username: user.user_metadata?.username || "",
+        bio: user.user_metadata?.bio || "",
+        location: user.user_metadata?.location || ""
       })
     }
   }, [user])
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Redirect if no user
   if (!user) {
     router.push("/auth/login")
     return null
   }
 
+  
+
   const handleSave = () => {
     // Update the user profile with new data
     updateProfile({
-      fullName: formData.fullName,
-      username: formData.username
+      user_metadata: {
+        full_name: formData.fullName,
+        username: formData.username,
+        bio: formData.bio,
+        location: formData.location,
+      },
     })
     
-    // Here you would typically also save bio and location to your backend
-    console.log("Saving profile:", formData)
+    console.log("Saving profile with user_metadata:", formData)
     setIsEditing(false)
     
     // Show success message
@@ -67,8 +89,8 @@ export default function ProfilePage() {
 
   const handleCancel = () => {
     setFormData({
-      fullName: user.fullName,
-      username: user.username,
+      fullName: user?.fullName || "",
+      username: user?.username || "",
       bio: "Passionate learner and quiz enthusiast! 🎓",
       location: "Student"
     })
@@ -107,7 +129,9 @@ export default function ProfilePage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                                            <span className="text-white font-bold text-3xl">{user.fullName.charAt(0).toUpperCase()}</span>
+                      <span className="text-white font-bold text-3xl">
+                        {user?.fullName?.charAt(0)?.toUpperCase() || "U"}
+                      </span>
                     )}
                   </div>
                   <div className="absolute -bottom-1 -right-1 flex space-x-1">
@@ -143,9 +167,11 @@ export default function ProfilePage() {
                     className="hidden"
                   />
                 </div>
-                <CardTitle className="text-xl font-bold text-gray-800">{user.fullName}</CardTitle>
-                <p className="text-gray-600">@{user.username}</p>
-                {user.isAdmin && (
+                <CardTitle className="text-xl font-bold text-gray-800">
+                  {user?.fullName || "User"}
+                </CardTitle>
+                <p className="text-gray-600">@{user?.username || "username"}</p>
+                {user?.isAdmin && (
                   <span className="inline-block mt-2 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full">
                     Admin
                   </span>

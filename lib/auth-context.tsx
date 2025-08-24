@@ -47,9 +47,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setProfileImageUrl(url)
   }
 
-  const updateProfile = (updates: Partial<User>) => {
-    if (user) {
-      setUser({ ...user, ...updates })
+  const updateProfile = async (updates: Partial<User>) => {
+    if (!user) return;
+
+    // Prepare updates for Supabase
+    const { data, error } = await supabase.auth.updateUser({
+      data: updates.user_metadata, // Assuming user_metadata is passed in updates
+    });
+
+    if (error) {
+      console.error("Error updating user profile:", error.message);
+      return;
+    }
+
+    // Update local user state with the new data from Supabase
+    if (data.user) {
+      setUser(data.user);
     }
   }
 

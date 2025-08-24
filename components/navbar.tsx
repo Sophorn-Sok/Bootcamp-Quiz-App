@@ -20,7 +20,7 @@ import {
 import { useImageUpload } from "@/hooks/use-image-upload"
 
 export default function Navbar() {
-  const { user, logout } = useAuth()
+  const { user, logout, updateProfile } = useAuth()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
@@ -32,7 +32,7 @@ export default function Navbar() {
     handleImageUpload,
     triggerFileInput,
     removeImage,
-  } = useImageUpload()
+  } = useImageUpload({ user, updateProfile, initialImageUrl: user?.user_metadata?.avatar_url })
 
   const fullName = user?.user_metadata?.full_name || user?.email || "User"
   const username = user?.username || user?.user_metadata?.username || fullName.split(" ")[0]
