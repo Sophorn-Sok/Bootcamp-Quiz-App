@@ -32,6 +32,7 @@ export default function Navbar() {
     handleImageUpload,
     triggerFileInput,
     removeImage,
+    getTransformedUrl,
   } = useImageUpload({ user, updateProfile, initialImageUrl: user?.user_metadata?.avatar_url })
 
   const fullName = user?.user_metadata?.full_name || user?.email || "User"
@@ -131,7 +132,11 @@ export default function Navbar() {
                   >
                     <div className="w-7 h-7 lg:w-8 lg:h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center overflow-hidden">
                       {imageUrl ? (
-                        <img src={imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                        <img
+                          src={getTransformedUrl({ width: 64, height: 64 }) ?? imageUrl}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <span className="text-white font-bold text-xs lg:text-sm">{initial}</span>
                       )}
@@ -155,7 +160,7 @@ export default function Navbar() {
                             <div className="w-20 h-20 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-3 overflow-hidden">
                               {imageUrl ? (
                                 <img
-                                  src={imageUrl}
+                                  src={getTransformedUrl({ width: 160, height: 160 }) ?? imageUrl}
                                   alt="Profile"
                                   className="w-full h-full object-cover"
                                 />
@@ -330,7 +335,11 @@ export default function Navbar() {
                     <div className="flex items-center space-x-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl px-4 py-3 mx-2 mb-3">
                       <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center overflow-hidden">
                         {imageUrl ? (
-                          <img src={imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                          <img
+                            src={getTransformedUrl({ width: 64, height: 64 }) ?? imageUrl}
+                            alt="Profile"
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
                           <span className="text-white font-bold text-sm">{initial}</span>
                         )}

@@ -29,7 +29,8 @@ export default function ProfilePage() {
     fileInputRef,
     handleImageUpload,
     triggerFileInput,
-    removeImage
+    removeImage,
+    getTransformedUrl,
   } = useImageUpload({
     user,
     updateProfile,
@@ -124,7 +125,7 @@ export default function ProfilePage() {
                   <div className="w-24 h-24 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
                     {imageUrl ? (
                       <img 
-                        src={imageUrl} 
+                        src={getTransformedUrl({ width: 192, height: 192 }) ?? imageUrl} 
                         alt="Profile" 
                         className="w-full h-full object-cover"
                       />
